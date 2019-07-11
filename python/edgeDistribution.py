@@ -11,7 +11,7 @@ import numpy as np
 #For each file, write down the secretion micrograms of the cell line,
 #and make a map from reactions to cell lines
 
-BASE_DIR = "~/lewisLab/geneProteinReaction/modelResultsKallehauge"; #POINT TO DIRECTORY WITH MODEL RESULTS
+BASE_DIR = "/Users/Dan/lewisLab/geneProteinReaction/modelResultsKallehauge"; #POINT TO DIRECTORY WITH MODEL RESULTS
 KEPT_OR_CORE = "kept"; #PICK "kept" or "core" TO SWITCH WHICH EDGES ARE ANALYZED.  THIS USES THE MCADRE DEFINITION.
 MIN_CELL_LINE = 101
 MAX_CELL_LINE = 196
@@ -30,7 +30,7 @@ for i in range(MIN_CELL_LINE, MAX_CELL_LINE):
             reaction = val.strip();
             reactionToCellLine[reaction].add(cellLine);
         
-        print cellLine, secretionMicrograms[cellLine], "#Reactions:", len(data)-1;
+        print (cellLine, secretionMicrograms[cellLine], "#Reactions:", len(data)-1);
 
 # Each reaction splits cell lines into cell lines that have and don't have that reaction.
 # This creates two sets of secretion microgram numbers.  We use a permutation test to see if
@@ -52,26 +52,31 @@ for reaction in reactionToCellLine:
     off.sort();
 
     if len(on) > 0 and len(off) > 0:
-        mannWhitneyU = scipy.stats.mannwhitneyu(on, off)
+        mannWhitneyU = scipy.stats.mannwhitneyu(on, off, alternative='two-sided')
+        
+        print("BONFERRONI PVALUE THRESHOLD: " + str(.05 / len(reactionToCellLine)));
+        
+        secretionMGStr = "secretion (" + chr(945+11) + "g)";
+        logSecretionMGStr = "log secretion (" + chr(945+11) + "g)";
         
         if (mannWhitneyU.pvalue > 0 and mannWhitneyU.pvalue < .05 / len(reactionToCellLine)):
             on_off = ['ON']*len(on) + ['OFF'] * len(off)
-            df = pd.DataFrame({'secretion':on + off, reaction:on_off});
-            df['log_secretion'] = np.log10(df['secretion'])
+            df = pd.DataFrame({secretionMGStr:on + off, reaction:on_off});
+            df[logSecretionMGStr] = np.log10(df[secretionMGStr])
             plt.subplot(2,1,1);
-            sns.swarmplot(x='secretion', y=reaction, data=df);
+            sns.swarmplot(x=secretionMGStr, y=reaction, data=df);
             plt.subplot(2,1,2);
-            sns.swarmplot(x='log_secretion', y=reaction, data=df);
+            sns.swarmplot(x=logSecretionMGStr, y=reaction, data=df);
             plt.suptitle("P = " + str(mannWhitneyU.pvalue));
             plt.show();
 
         
-        permutationTestResults[reaction] = (reaction, len(on), len(off), mannWhitneyU.statistic, mannWhitneyU.pvalue, (min(on), on[len(on)/2], max(on)), (min(off), off[len(off)/2], max(off)));
+        permutationTestResults[reaction] = (reaction, len(on), len(off), mannWhitneyU.statistic, mannWhitneyU.pvalue, (min(on), on[len(on)//2], max(on)), (min(off), off[len(off)//2], max(off)));
     else:
         permutationTestResults[reaction] = (reaction, len(on), len(off), 0, 0, -1, -1);
 
 for reaction in reactionToCellLine:
-    print reaction, permutationTestResults[reaction];
+    print (reaction, permutationTestResults[reaction]);
 
 all = []
 for reaction in permutationTestResults:
@@ -79,10 +84,10 @@ for reaction in permutationTestResults:
 
 all.sort(key=lambda t:t[4], reverse=True);
 
-print "HITS:";
+print("HITS:");
 for t in all:
     if t[4] > 0 and t[4] < .05:
-        print t
+        print(t)
 
 allPVals = []
 for t in all:
@@ -90,5 +95,7 @@ for t in all:
         allPVals.append(t[4]);
 
 plt.hist(allPVals, bins=40);
-plt.title("All P Values");
+plt.title("P Value Distribution");
+plt.xlabel("P-value");
+plt.ylabel("count");
 plt.show();
