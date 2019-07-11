@@ -11,7 +11,8 @@ import numpy as np
 #For each file, write down the secretion micrograms of the cell line,
 #and make a map from reactions to cell lines
 
-BASE_DIR = "modelResultsKallehauge";
+BASE_DIR = "~/lewisLab/geneProteinReaction/modelResultsKallehauge"; #POINT TO DIRECTORY WITH MODEL RESULTS
+KEPT_OR_CORE = "kept"; #PICK "kept" or "core" TO SWITCH WHICH EDGES ARE ANALYZED.  THIS USES THE MCADRE DEFINITION.
 MIN_CELL_LINE = 101
 MAX_CELL_LINE = 196
 
@@ -19,7 +20,7 @@ secretionMicrograms = {}
 reactionToCellLine = defaultdict(set);
 
 for i in range(MIN_CELL_LINE, MAX_CELL_LINE):
-    filename = "./" + BASE_DIR + "/P6975_" + str(i) + "_core.txt";
+    filename = BASE_DIR + "/P6975_" + str(i) + "_" + KEPT_OR_CORE + ".txt";
     cellLine = "P6975_" + str(i);
     with open(filename) as f:
         data = f.read().splitlines();
