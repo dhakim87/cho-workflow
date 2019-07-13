@@ -15,7 +15,7 @@ ubiquityScorePath = "/Users/Dan/lewisLab/geneProteinReaction/ubiquityScore30.csv
 MIN_CELL_LINE = 101;
 MAX_CELL_LINE = 196;
 
-KEPT_OR_CORE = "core";
+KEPT_OR_CORE = "kept";
 
 #Part 1, Load up all of the model results, these files, one per cell line, contain secretion data, followed by all reactions kept in their cell specific models.
 #Open all the files in modelResults
